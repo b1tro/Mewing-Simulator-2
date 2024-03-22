@@ -5,14 +5,15 @@ using UnityEngine;
 
 public class Mewing : MonoBehaviour
 {
-    private void OnMouseEnter()
+    [Range(0, 1000)]
+    public float speed;
+    
+    private void FixedUpdate()
     {
-<<<<<<< Updated upstream
-        transform.localScale += new Vector3(1, 1, 1);
-        //HUI 2
-=======
-        transform.localScale = new Vector2(1, 1);
-        //HUI
->>>>>>> Stashed changes
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        
+        Vector3 diference = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        
+        rb.MovePosition(Vector3.Normalize(diference) * speed);
     }
 }
