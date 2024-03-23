@@ -225,7 +225,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1787908083}
   m_Layer: 0
-  m_Name: City 1
+  m_Name: pidoras
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
