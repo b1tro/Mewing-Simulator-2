@@ -10,6 +10,11 @@ public class Building
     {
         return this.tile;
     }
+
+    public Sprite getSprite()
+    {
+        return this.getTile().sprite;
+    }
 }
 
 public class House : Building
