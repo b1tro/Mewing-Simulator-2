@@ -3,20 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = System.Random;
 
 public class Build : MonoBehaviour
 {
-    [SerializeField] public GameManager gameManager;
+    [FormerlySerializedAs("gameManager")] [SerializeField] public TileMovement tileMovement;
     
     private void OnMouseDown()
     {
-        gameManager.isCursorEmpty = false;
+        tileMovement.isCursorEmpty = false;
     }
     
     private void OnMouseUp()
     {
-        gameManager.isCursorEmpty = false;
+        tileMovement.isCursorEmpty = false;
         CancelInvoke(nameof(OnMouseDrag));
     }
     

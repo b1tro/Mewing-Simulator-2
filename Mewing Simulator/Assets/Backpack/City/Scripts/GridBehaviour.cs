@@ -2,12 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
 public class GridBehaviour : MonoBehaviour
 {
-    [SerializeField] 
-    private GameManager _gameManager;
+    [FormerlySerializedAs("_gameManager")] [SerializeField] 
+    private TileMovement tileMovement;
     
     [SerializeField]
     private Tilemap tilemap;
@@ -17,7 +18,7 @@ public class GridBehaviour : MonoBehaviour
     public GridHighlight _GridHighlight;
     
 
-    void FixedUpdate()
+    void Update()
     {
         _GridHighlight.Highlight();
     }
@@ -29,15 +30,15 @@ public class GridBehaviour : MonoBehaviour
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cellPos = tilemap.WorldToCell(mousePos);
 
-        if (!_gameManager.isCursorEmpty)
+        if (!tileMovement.isCursorEmpty)
         {
-           // BuildTower(cellPos);
+           //BuildTower(cellPos);
         }
     }
 
     public void BuildTower(Vector3Int cellPos)
     {
-        _gameManager.isCursorEmpty = true;
+        tileMovement.isCursorEmpty = true;
         tilemap.SetTile(cellPos, buildingTile);
     }
 }

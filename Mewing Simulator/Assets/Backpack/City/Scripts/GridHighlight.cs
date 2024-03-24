@@ -4,7 +4,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class GridHighlight : MonoBehaviour {
+public class GridHighlight : MonoBehaviour
+{
+    public TileMovement _TileMovement;
     
     [SerializeField]
     private Tilemap tilemap;
@@ -19,6 +21,8 @@ public class GridHighlight : MonoBehaviour {
 
     private void Start()
     {
+        //Time.timeScale = 0.0001f;
+        
         previousCellPos = new Vector3Int(2, 2, -1);
     }
 
@@ -27,23 +31,33 @@ public class GridHighlight : MonoBehaviour {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cellPos = tilemap.WorldToCell(mousePos);
 
-       //Debug.Log(cellPos);
+       Debug.Log(tilemap.GetTile(cellPos));
         
         if (tilemap.GetTile(cellPos) != defaultTile && tilemap.GetTile(cellPos) != highlightedTile)
         {
-            tilemap.SetTile(previousCellPos, defaultTile);
+            if (tilemap.GetTile(previousCellPos) == highlightedTile)
+                    tilemap.SetTile(previousCellPos, defaultTile);
             return;
         }
-
+        
         if (tilemap.GetTile(previousCellPos) == highlightedTile)
         {
             tilemap.SetTile(previousCellPos, defaultTile);
         }
 
+       
         tilemap.SetTile(cellPos, highlightedTile);
         tilemap.SetTileFlags(cellPos, TileFlags.None);
         tilemap.SetColor(cellPos, highlightColor);
-    
+        
+
         previousCellPos = cellPos;
     }
+
+    public Tile GetDefaultTile()
+    {
+        return defaultTile;
+    }
+
+    public bool OnBackpack(Vector3Int cellPos) => tilemap.GetTile(cellPos) == defaultTile || tilemap.GetTile(cellPos) == highlightedTile;
 }
