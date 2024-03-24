@@ -923,6 +923,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6509d78af92d1fd4e9f9089f09630b55, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _TileMovement: {fileID: 1319065491}
   tilemap: {fileID: 391313493}
   defaultTile: {fileID: 11400000, guid: a4461c3b070fcd04182b6bf3e0963c23, type: 2}
   highlightedTile: {fileID: 11400000, guid: 2387ee1f2985e4342bf667ac8cf5bbaa, type: 2}
@@ -1480,7 +1481,9 @@ MonoBehaviour:
   isCursorEmpty: 0
   tilemap: {fileID: 391313493}
   _Market: {fileID: 391313497}
+  curBuilding: {fileID: 0}
   _GridHighlight: {fileID: 391313494}
+  isDropping: 0
 --- !u!4 &1319065492
 Transform:
   m_ObjectHideFlags: 0
