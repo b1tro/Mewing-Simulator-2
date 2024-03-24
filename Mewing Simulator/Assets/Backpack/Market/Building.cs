@@ -4,11 +4,16 @@ using UnityEngine.Tilemaps;
 
 public class Building
 {
-    public Tile tile;
+    private Tile tile;
 
     public Tile getTile()
     {
         return this.tile;
+    }
+
+    public void setTile(Tile tile)
+    {
+        this.tile = tile;
     }
 
     public Sprite getSprite()
@@ -21,8 +26,7 @@ public class House : Building
 {
     public House()
     {
-        tile = Resources.Load<Tile>("Building1");
-        Debug.Log(tile);
+        this.setTile(Resources.Load<Tile>("Building1"));
     }
 }
 public class Bank : Building
@@ -30,7 +34,6 @@ public class Bank : Building
     
     public Bank()
     {
-        tile = Resources.Load<Tile>("Building2");
-        Debug.Log(tile);
+        this.setTile(Resources.Load<Tile>("Building2"));
     }
 }
