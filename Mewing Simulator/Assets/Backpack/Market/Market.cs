@@ -5,7 +5,7 @@ using UnityEngine.Tilemaps;
 
 public class Market : MonoBehaviour
 {
-    public Dictionary<Tile, Building> buildingTile = new Dictionary<Tile, Building>();
+    public Dictionary<Vector3Int, Building> buildingTile = new Dictionary<Vector3Int, Building>();
     public Tilemap marketTilemap;
     void Start()
     {
@@ -19,7 +19,7 @@ public class Market : MonoBehaviour
                 Debug.Log(currentTile);
                 marketTilemap.SetTile(currentTile, chosenBuilding.getTile());
                 Debug.Log(chosenBuilding.getTile());
-                buildingTile.Add((Tile)marketTilemap.GetTile(currentTile), chosenBuilding);
+                buildingTile.Add(currentTile, chosenBuilding);
             }
         }
     }
