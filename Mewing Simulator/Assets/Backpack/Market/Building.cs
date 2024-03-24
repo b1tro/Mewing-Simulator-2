@@ -10,7 +10,6 @@ public class Building
     {
         return this.tile;
     }
-
 }
 
 public class House : Building

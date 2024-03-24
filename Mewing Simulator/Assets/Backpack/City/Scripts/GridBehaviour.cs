@@ -6,7 +6,8 @@ using UnityEngine.Tilemaps;
 
 public class GridBehaviour : MonoBehaviour
 {
-    public bool isCursorEmpty;
+    [SerializeField] 
+    private GameManager _gameManager;
     
     [SerializeField]
     private Tilemap tilemap;
@@ -28,7 +29,7 @@ public class GridBehaviour : MonoBehaviour
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cellPos = tilemap.WorldToCell(mousePos);
 
-        if (!isCursorEmpty)
+        if (!_gameManager.isCursorEmpty)
         {
             BuildTower(cellPos);
         }
@@ -36,6 +37,7 @@ public class GridBehaviour : MonoBehaviour
 
     public void BuildTower(Vector3Int cellPos)
     {
+        _gameManager.isCursorEmpty = true;
         tilemap.SetTile(cellPos, buildingTile);
     }
 }
