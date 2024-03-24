@@ -31,7 +31,7 @@ public class GridBehaviour : MonoBehaviour
 
         if (!_gameManager.isCursorEmpty)
         {
-            BuildTower(cellPos);
+           // BuildTower(cellPos);
         }
     }
 
