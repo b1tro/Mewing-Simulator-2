@@ -40,10 +40,12 @@ public class TileMovement : MonoBehaviour
 
         TakeFromBP();
 
+        DropBuildingOnOtherBuilding();
+
         if (_GridHighlight.OnBackpack(cellPos))
         {
             DropBuilding();
-
+            
             MovingInBP();
         }
         else
@@ -81,7 +83,7 @@ public class TileMovement : MonoBehaviour
         
         isCursorEmpty = false;
         choosenBuilding = _Market.buildingTile[cellPos];
-        CreateSprite();
+        CreateSprite(new Quaternion(0, 0, 0, 0));
         //Спавнит спрайт тайла с магаза
     }
 
@@ -112,7 +114,9 @@ public class TileMovement : MonoBehaviour
     
     private void MovingInBP()
     {
-        if (!Input.GetMouseButton(0) || !curBuilding || isCursorEmpty) return;
+        if (!Input.GetMouseButton(0) || !curBuilding) return;
+        
+        isCursorEmpty = false;
         
         mousePos = tilemap.CellToWorld(cellPos);
         curBuilding.transform.position = mousePos + new Vector3(0.75f, 0.75f);
@@ -150,7 +154,7 @@ public class TileMovement : MonoBehaviour
     
     private void DropBuilding()
     {
-        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty) return;
+        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || _BpData.buildingsBP.ContainsKey(cellPos)) return;
         
         isCursorEmpty = true;
             
@@ -160,6 +164,33 @@ public class TileMovement : MonoBehaviour
 
         _BpData.buildingsBP.Add(cellPos, choosenBuilding);
         tilemap.SetTile(cellPos, choosenBuilding.getTile());
+        tilemap.SetTransformMatrix(cellPos, Matrix4x4.TRS(Vector3.zero, curBuilding.transform.rotation, Vector3.one));
+        //Ставит в рюкзачек
+    }
+    
+    private void DropBuildingOnOtherBuilding()
+    {
+        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || !_BpData.buildingsBP.ContainsKey(cellPos)) return;
+        
+        isCursorEmpty = true;
+            
+        if(isRotating) return; 
+        
+        Quaternion prevRotation = tilemap.GetTransformMatrix(cellPos).rotation;
+        
+        tilemap.SetTile(cellPos, choosenBuilding.getTile());
+        tilemap.SetTransformMatrix(cellPos, Matrix4x4.TRS(Vector3.zero, curBuilding.transform.rotation, Vector3.one));
+
+        Building prevBuild = _BpData.buildingsBP[cellPos];
+        
+        _BpData.DeleteTile(cellPos, prevBuild);
+        _BpData.buildingsBP.Add(cellPos, choosenBuilding);
+        
+        Destroy(curBuilding);
+        
+        choosenBuilding = prevBuild;
+        
+        CreateSprite(prevRotation);
         //Ставит в рюкзачек
     }
 
@@ -176,12 +207,12 @@ public class TileMovement : MonoBehaviour
 
         tilemap.SetTile(cellPos, _GridHighlight.GetDefaultTile());
 
-        CreateSprite();
+        CreateSprite(tilemap.GetTransformMatrix(cellPos).rotation);
     }
 
-    private void CreateSprite()
+    private void CreateSprite(Quaternion rotation)
     {
-        curBuilding = Instantiate(spritePrefab, mousePos, new Quaternion(0, 0, 0, 0));
+        curBuilding = Instantiate(spritePrefab, mousePos, rotation);
         curBuilding.GetComponent<Build>().spriteBuilding = choosenBuilding;
 
         curBuilding.GetComponent<SpriteRenderer>().sprite = choosenBuilding.getSprite();
