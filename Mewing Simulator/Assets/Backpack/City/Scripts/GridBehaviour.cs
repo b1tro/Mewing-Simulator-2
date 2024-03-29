@@ -11,7 +11,7 @@ public class GridBehaviour : MonoBehaviour
     private TileMovement tileMovement;
     
     [SerializeField]
-    private Tilemap tilemap;
+    private UnityEngine.Tilemaps.Tilemap tilemap;
 
     public Tile buildingTile;
 

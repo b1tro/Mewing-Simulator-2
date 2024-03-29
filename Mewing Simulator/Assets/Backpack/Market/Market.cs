@@ -6,7 +6,7 @@ using UnityEngine.Tilemaps;
 public class Market : MonoBehaviour
 {
     public Dictionary<Vector3Int, Building> buildingTile = new Dictionary<Vector3Int, Building>();
-    public Tilemap marketTilemap;
+    public UnityEngine.Tilemaps.Tilemap marketTilemap;
     void Start()
     {
         for (int x = 2; x < 7; x += 2)

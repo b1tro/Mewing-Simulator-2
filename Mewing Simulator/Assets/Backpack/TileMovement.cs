@@ -1,6 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -9,11 +12,12 @@ public class TileMovement : MonoBehaviour
     public bool isCursorEmpty = true;
     public bool isRotating;
 
-    public Market _Market;
+   // public Market _Market;
     public BPData _BpData;
+    public RenderTile _RenderTile;
     public GridHighlight _GridHighlight;
 
-    public Tilemap tilemap;
+    public UnityEngine.Tilemaps.Tilemap tilemap;
     private Tile choosenTile;
 
     public GameObject curBuilding = null;
@@ -35,6 +39,8 @@ public class TileMovement : MonoBehaviour
         cellPos = tilemap.WorldToCell(mousePos);
 
         mousePos.z = 0;
+        
+        //Debug.Log(tilemap.GetTile(cellPos));
 
         CheckMouseOverCollider();
 
@@ -61,28 +67,39 @@ public class TileMovement : MonoBehaviour
         }
     }
 
-    private void CheckMouseOverCollider()
+    public void CheckMouseOverCollider()
     {
         curCollider = Physics2D.OverlapPoint(mousePos);
         //OverlapPoint проверяет если мышка на коллайдере  Physics2D.OverlapBox(mousePos, new Vector2(1.75f, 1.75f), 0);
 
         if (curCollider == null) return;
-
-        if (!curCollider.CompareTag("Tower") || !isCursorEmpty) return;
+        
+        Debug.Log("YA RABOTAYU");
+        
+        if (!isCursorEmpty) return;
+        
+        Debug.Log("YA RABOTAYU");
         
         curBuilding = curCollider.gameObject;
-        choosenBuilding = curBuilding.GetComponent<Build>().spriteBuilding;
+
+        choosenBuilding = curBuilding.transform.parent.GetComponent<Build>().cellBuilding;
+        
+        //choosenBuilding = curBuilding.GetComponent<Build>().spriteBuilding;
+
         //Важная штука, меняет текущий геймобжэкт на тот, на который указывает мышка
     }
-    
+
     private void TakeFromMarket()
     {
         if (!Input.GetMouseButtonDown(0)) return;
-
-        if (!_Market.buildingTile.ContainsKey(cellPos)) return;
         
+        //Debug.LogError(_RenderTile.ContainsTile(cellPos));
+        
+        if (!_RenderTile.ContainsTile(cellPos)) return;
+        //!_Market.buildingTile.ContainsKey(cellPos) 
+
         isCursorEmpty = false;
-        choosenBuilding = _Market.buildingTile[cellPos];
+        choosenBuilding = _RenderTile.GetBuilding(cellPos);
         CreateSprite(new Quaternion(0, 0, 0, 0));
         //Спавнит спрайт тайла с магаза
     }
@@ -93,11 +110,11 @@ public class TileMovement : MonoBehaviour
         
         if (Input.GetMouseButton(0))
         {
-            if (!isCursorEmpty || (curCollider != null && curCollider.CompareTag("Tower")))
+            if (!isCursorEmpty || (curCollider != null))
             {
                 isCursorEmpty = false;
                 
-                curBuilding.GetComponent<Rigidbody2D>().MovePosition(mousePos);
+                curBuilding.transform.parent.GetComponent<Rigidbody2D>().MovePosition(mousePos);
             }
         }
         //Несет спрайт за курсором
@@ -106,7 +123,7 @@ public class TileMovement : MonoBehaviour
         {
             isCursorEmpty = true;
             
-            curBuilding.GetComponent<Rigidbody2D>().velocity =
+            curBuilding.transform.parent.GetComponent<Rigidbody2D>().velocity =
                 (mousePos - curBuilding.transform.position).normalized * 5;
         }
         //Если выпал из курсора спрайт, то подкидывает его в сторону, куда двигался
@@ -119,7 +136,7 @@ public class TileMovement : MonoBehaviour
         isCursorEmpty = false;
         
         mousePos = tilemap.CellToWorld(cellPos);
-        curBuilding.transform.position = mousePos + new Vector3(0.75f, 0.75f);
+        curBuilding.transform.parent.position = mousePos + new Vector3(0.75f, 0.75f);
         //Двигает в рюкзачке
     }
 
@@ -133,19 +150,19 @@ public class TileMovement : MonoBehaviour
 
         isRotating = true;
 
-        float targetAngle = curBuilding.transform.eulerAngles.z + 90f;
+        float targetAngle = curBuilding.transform.parent.eulerAngles.z + 90f;
         float startTime = Time.time; // Time when rotation starts
 
         while (Time.time - startTime < duration)
         {
             float step = rotationSpeed * Time.deltaTime;
-            curBuilding.transform.Rotate(0, 0, step);
+            curBuilding.transform.parent.Rotate(0, 0, step);
             yield return null;
         }
         
-        curBuilding.transform.eulerAngles = new Vector3(
-            curBuilding.transform.eulerAngles.x,
-            curBuilding.transform.eulerAngles.y,
+        curBuilding.transform.parent.eulerAngles = new Vector3(
+            curBuilding.transform.parent.eulerAngles.x,
+            curBuilding.transform.parent.eulerAngles.y,
             targetAngle
         );
 
@@ -154,15 +171,17 @@ public class TileMovement : MonoBehaviour
     
     private void DropBuilding()
     {
-        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || _BpData.buildingsBP.ContainsKey(cellPos)) return;
+        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || _BpData.ContainsTile(cellPos)) return;
         
         isCursorEmpty = true;
             
         if(isRotating) return; 
         
         Destroy(curBuilding);
-
-        _BpData.buildingsBP.Add(cellPos, choosenBuilding);
+        
+        
+        
+        _BpData.buildingsBP.Add(, choosenBuilding);
         tilemap.SetTile(cellPos, choosenBuilding.getTile());
         tilemap.SetTransformMatrix(cellPos, Matrix4x4.TRS(Vector3.zero, curBuilding.transform.rotation, Vector3.one));
         //Ставит в рюкзачек
@@ -170,7 +189,7 @@ public class TileMovement : MonoBehaviour
     
     private void DropBuildingOnOtherBuilding()
     {
-        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || !_BpData.buildingsBP.ContainsKey(cellPos)) return;
+        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || !_BpData.ContainsTile(cellPos)) return;
         
         isCursorEmpty = true;
             
@@ -181,11 +200,12 @@ public class TileMovement : MonoBehaviour
         tilemap.SetTile(cellPos, choosenBuilding.getTile());
         tilemap.SetTransformMatrix(cellPos, Matrix4x4.TRS(Vector3.zero, curBuilding.transform.rotation, Vector3.one));
 
-        Building prevBuild = _BpData.buildingsBP[cellPos];
-        
-        _BpData.DeleteTile(cellPos, prevBuild);
-        _BpData.buildingsBP.Add(cellPos, choosenBuilding);
-        
+        Building prevBuild = _BpData.buildingsBP[choosenBuilding.getCellsPos()];
+
+
+        _BpData.DeleteTile(choosenBuilding.getCellsPos(), prevBuild);
+        _BpData.buildingsBP.Add(choosenBuilding.getCellsPos(), choosenBuilding);
+
         Destroy(curBuilding);
         
         choosenBuilding = prevBuild;
@@ -198,12 +218,13 @@ public class TileMovement : MonoBehaviour
     {
         if (!Input.GetMouseButtonDown(0)) return;
 
-        if (!_BpData.buildingsBP.ContainsKey(cellPos)) return;
+        if (!_BpData.ContainsTile(cellPos)) return;
         
         isCursorEmpty = false;
 
-        choosenBuilding = _BpData.buildingsBP[cellPos];
-        _BpData.DeleteTile(cellPos, choosenBuilding);
+        choosenBuilding = _BpData.GetBuilding(cellPos);
+        
+        _BpData.DeleteTile(choosenBuilding.getCellsPos(), choosenBuilding);
 
         tilemap.SetTile(cellPos, _GridHighlight.GetDefaultTile());
 
@@ -212,9 +233,21 @@ public class TileMovement : MonoBehaviour
 
     private void CreateSprite(Quaternion rotation)
     {
-        curBuilding = Instantiate(spritePrefab, mousePos, rotation);
-        curBuilding.GetComponent<Build>().spriteBuilding = choosenBuilding;
+        GameObject curBuilding =Instantiate(spritePrefab, mousePos, Quaternion.identity);
+        curBuilding.tag = "Tower";
 
-        curBuilding.GetComponent<SpriteRenderer>().sprite = choosenBuilding.getSprite();
+            curBuilding.GetComponent<Build>().cellBuilding = choosenBuilding;
+        
+        foreach (var curPos in choosenBuilding.getCellsPos())
+        {
+            GameObject tileClone = Instantiate(new GameObject(), new Vector3((curPos.x * 1.75f), (curPos.y * 1.75f), 0), Quaternion.identity);
+            tileClone.AddComponent<SpriteRenderer>().GetComponent<SpriteRenderer>().sprite = choosenBuilding.getSprite();
+            tileClone.AddComponent<BoxCollider2D>();
+            
+            tileClone.tag = "Tower";
+            
+            tileClone.transform.parent = curBuilding.transform;
+        }
+        
     }
 }

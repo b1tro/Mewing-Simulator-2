@@ -6,7 +6,11 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using Random = System.Random;
 
+[System.Serializable]
 public class Build : MonoBehaviour
 {
-    public Building spriteBuilding;
+    [FormerlySerializedAs("spriteBuilding")] [SerializeField]
+    public List<Vector3Int> cellPosBuilding;
+
+    public Building cellBuilding;
 }

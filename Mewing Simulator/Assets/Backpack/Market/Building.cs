@@ -1,10 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-
+[System.Serializable]
 public class Building
 {
-    private Tile tile;
+    [SerializeField]
+    public Tile tile;
+    [SerializeField]
+    public List<Vector3Int> cellsPos;
 
     public Tile getTile()
     {
@@ -20,8 +24,20 @@ public class Building
     {
         return this.getTile().sprite;
     }
+
+    public void setCellsPos(List<Vector3Int> cellsPos)
+    {
+
+        this.cellsPos = cellsPos;
+    }
+
+    public List<Vector3Int> getCellsPos()
+    {
+        return this.cellsPos;
+    }
 }
 
+[System.Serializable]
 public class House : Building
 {
     public House()
@@ -29,9 +45,10 @@ public class House : Building
         this.setTile(Resources.Load<Tile>("Building1"));
     }
 }
+
+[System.Serializable]
 public class Bank : Building
 {
-    
     public Bank()
     {
         this.setTile(Resources.Load<Tile>("Building2"));

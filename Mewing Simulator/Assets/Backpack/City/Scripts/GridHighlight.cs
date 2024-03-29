@@ -9,7 +9,7 @@ public class GridHighlight : MonoBehaviour
     public TileMovement _TileMovement;
     
     [SerializeField]
-    private Tilemap tilemap;
+    private UnityEngine.Tilemaps.Tilemap tilemap;
     [SerializeField] 
     private Tile defaultTile; 
     [SerializeField]
@@ -31,7 +31,7 @@ public class GridHighlight : MonoBehaviour
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cellPos = tilemap.WorldToCell(mousePos);
 
-       Debug.Log(tilemap.GetTile(cellPos));
+      // Debug.Log(tilemap.GetTile(cellPos));
         
         if (tilemap.GetTile(cellPos) != defaultTile && tilemap.GetTile(cellPos) != highlightedTile)
         {
