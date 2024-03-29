@@ -31,7 +31,7 @@ public class GridHighlight : MonoBehaviour
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cellPos = tilemap.WorldToCell(mousePos);
 
-       Debug.Log(tilemap.GetTile(cellPos));
+       //Debug.Log(tilemap.GetTile(cellPos));
         
         if (tilemap.GetTile(cellPos) != defaultTile && tilemap.GetTile(cellPos) != highlightedTile)
         {
@@ -59,5 +59,18 @@ public class GridHighlight : MonoBehaviour
         return defaultTile;
     }
 
-    public bool OnBackpack(Vector3Int cellPos) => tilemap.GetTile(cellPos) == defaultTile || tilemap.GetTile(cellPos) == highlightedTile;
+    public bool OnBackpack(List<Vector3Int> cellPos)
+    {
+        bool isAllInBP = true;
+        
+        foreach (Vector3Int Pos in cellPos)
+        {
+            if(!(Pos.x >= 1 && Pos.x <= 8 && Pos.y >= -4 && Pos.y <= 3))
+            {
+                isAllInBP = false;
+            }
+        }
+
+        return isAllInBP;
+    }
 }

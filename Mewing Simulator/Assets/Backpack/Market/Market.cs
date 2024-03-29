@@ -5,23 +5,27 @@ using UnityEngine.Tilemaps;
 
 public class Market : MonoBehaviour
 {
-    public Dictionary<Vector3Int, Building> buildingTile = new Dictionary<Vector3Int, Building>();
+    public Dictionary<List<Vector3Int>, Building> buildingTile = new Dictionary<List<Vector3Int>, Building>();
     public Tilemap marketTilemap;
     void Start()
     {
-        for (int x = 2; x < 7; x += 2)
+        Building chosenBuilding = CreateInstanceOfRandomClass();
+
+        for (int x = 0; x < 3; x++)
         {
-            for (int y = 0; y < 5; y += 2)
+            for (int y = 0; y < 2; y++)
             {
-                Building chosenBuilding = CreateInstanceOfRandomClass();
-                Debug.Log(chosenBuilding);
+                if(y == 1 && x == 2) continue;
+                
                 Vector3Int currentTile = new Vector3Int(-x, y, 0);
-                Debug.Log(currentTile);
+
                 marketTilemap.SetTile(currentTile, chosenBuilding.getTile());
-                Debug.Log(chosenBuilding.getTile());
-                buildingTile.Add(currentTile, chosenBuilding);
+                chosenBuilding.addCellPos(currentTile);
+                
             }
         }
+        
+        buildingTile.Add(chosenBuilding.getCellsPos(), chosenBuilding);
     }
 
     private Building CreateInstanceOfRandomClass()
@@ -37,5 +41,81 @@ public class Market : MonoBehaviour
                 return null;
         }
         
+    }
+
+    public bool ContainsCellPos(Vector3Int cellPos)
+    {
+        if (buildingTile == null) return false;
+        
+        foreach (var building in buildingTile)
+        {
+            foreach (var Pos in building.Key)
+            {
+                if (Pos == cellPos)
+                    return true;
+            }
+        }
+        return false;
+    }
+    
+    public Building GetBuilding(Vector3Int cellPos)
+    {
+        if (buildingTile == null) return null;
+        
+        foreach (var building in buildingTile)
+        {
+            foreach (var Pos in building.Key)
+            {
+                if (Pos == cellPos)
+                {
+                    return building.Value;
+                }
+            }
+        }
+        return null;
+    }
+    
+    public void RenderTiles()
+    {
+        // foreach (var building in buildingTile)
+        // {
+        //     foreach (var Pos in building.Key)
+        //     {
+        //         //Debug.Log("YA POSTAVIL:" + Pos + " " +   building.Value.getTile());
+        //         
+        //         marketTilemap.SetTile(Pos, building.Value.getTile());
+        //     }
+        // }
+    }
+
+    public void DeleteTiles(Building building)
+    {
+        foreach (var build in buildingTile)
+        {
+            if (build.Value == building)
+            {
+                foreach (var Pos in build.Key)
+                {
+                    marketTilemap.SetTile(Pos, null);
+                }
+
+            }
+        }
+        
+        buildingTile.Remove(building.getCellsPos());
+    }
+    
+    public List<Vector3Int> GetCellsPos(Building building)
+    {
+        if (buildingTile == null) return null;
+        
+        foreach (var build in buildingTile)
+        {
+            if (build.Value == building)
+            {
+                return build.Key;
+            }
+        }
+        return null;
     }
 }

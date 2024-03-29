@@ -8,5 +8,5 @@ using Random = System.Random;
 
 public class Build : MonoBehaviour
 {
-    public Building spriteBuilding;
+    public Building prefabBuilding;
 }
