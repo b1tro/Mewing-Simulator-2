@@ -20,7 +20,6 @@ public class GridBehaviour : MonoBehaviour
 
     void Update()
     {
-        _GridHighlight.Highlight();
     }
 
     private void OnMouseDown()

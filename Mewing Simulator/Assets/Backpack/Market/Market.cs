@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Random = UnityEngine.Random;
 
 
 public class Market : MonoBehaviour
@@ -9,13 +11,19 @@ public class Market : MonoBehaviour
     public Tilemap marketTilemap;
     void Start()
     {
+        MakeBuild();
+        MakeBuild();
+        
+    }
+
+    private void MakeBuild(){
         Building chosenBuilding = CreateInstanceOfRandomClass();
 
-        for (int x = 0; x < 3; x++)
+        for (int x = 0; x  < Random.Range(1, 3) ; x++)
         {
-            for (int y = 0; y < 2; y++)
+            for (int y = 0; y < Random.Range(1, 3); y++)
             {
-                if(y == 1 && x == 2) continue;
+                if(y == Random.Range(1, 3) && x == Random.Range(1, 3)) continue;
                 
                 Vector3Int currentTile = new Vector3Int(-x, y, 0);
 

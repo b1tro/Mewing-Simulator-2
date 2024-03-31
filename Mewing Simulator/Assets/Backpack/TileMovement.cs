@@ -1,11 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class TileMovement : MonoBehaviour
 {
+    public event Action<List<Vector3Int>, bool, Vector3Int> DropBuild;
+
     public bool isCursorEmpty = true;
     public bool isRotating;
 
@@ -31,21 +35,20 @@ public class TileMovement : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(cellPos);
+        //Debug.Log(cellPos);
         
         mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         cellPos = tilemap.WorldToCell(mousePos);
 
         mousePos.z = 0;
-
+        
         CheckMouseOverCollider();
 
         TakeFromBP();
 
         DropBuildingOnOtherBuilding();
-        
 
-        if (choosenBuilding != null && _GridHighlight.OnBackpack(PosUpdater(cellPos, choosenBuilding.getCellsPos())))
+        if (curBuilding && choosenBuilding != null && _GridHighlight.OnBackpack(PosUpdater(cellPos, choosenBuilding.getCellsPos()))) 
         {
             DropBuilding();
             
@@ -53,6 +56,8 @@ public class TileMovement : MonoBehaviour
         }
         else
         {
+            _GridHighlight.ClearGrid();
+            
             TakeFromMarket();
 
             MovingInStorage();
@@ -71,7 +76,8 @@ public class TileMovement : MonoBehaviour
 
         if (curCollider == null) return;
 
-        if (!curCollider.CompareTag("Tower") || !isCursorEmpty) return;
+        if (!curCollider.CompareTag("Tower") || !isCursorEmpty)
+            return;
         
         curBuilding = curCollider.gameObject;
         choosenBuilding = curBuilding.transform.parent.GetComponent<Build>().prefabBuilding;
@@ -123,12 +129,12 @@ public class TileMovement : MonoBehaviour
     
     private void MovingInBP()
     {
-        if (!Input.GetMouseButton(0) || !curBuilding) return;
-        
+        if (!Input.GetMouseButton(0) || !curBuilding || !Physics2D.OverlapBox(mousePos, new Vector2(1.75f, 1.75f), 0)) return;
+
         isCursorEmpty = false;
-        
+
         mousePos = tilemap.CellToWorld(cellPos);
-        curBuilding.transform.parent.transform.position = mousePos + new Vector3(0.75f, 0.75f);
+        curBuilding.transform.parent.transform.position = mousePos + new Vector3(0.65f, 0.65f);
         //Двигает в рюкзачке
     }
 
@@ -141,6 +147,11 @@ public class TileMovement : MonoBehaviour
         }
         
         choosenBuilding.setCellsPos(RotateCords(choosenBuilding.getCellsPos()));
+        
+        Vector3Int prevOffset = curBuilding.transform.parent.GetComponent<Build>().offset;
+        
+        curBuilding.transform.parent.GetComponent<Build>().offset = 
+            new Vector3Int(-prevOffset.y, prevOffset.x, prevOffset.z);
         
         isRotating = true;
 
@@ -166,7 +177,16 @@ public class TileMovement : MonoBehaviour
     
     private void DropBuilding()
     {
-        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || _BpData.ContainsCellPos(cellPos)) return;
+        if (!curBuilding
+            || isCursorEmpty || _BpData.ConatainsOverlap(PosUpdater(cellPos, choosenBuilding.getCellsPos())))
+        {
+            _GridHighlight.ClearGrid();
+            return;
+        }
+
+        DropBuild?.Invoke(PosUpdater(cellPos, choosenBuilding.getCellsPos()), isCursorEmpty, cellPos);
+        
+        if (!Input.GetMouseButtonUp(0)) return;
         
         isCursorEmpty = true;
             
@@ -186,27 +206,29 @@ public class TileMovement : MonoBehaviour
     
     private void DropBuildingOnOtherBuilding()
     {
-        // if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || !_BpData.buildingsBP.ContainsKey(cellPos)) return;
-        //
-        // isCursorEmpty = true;
-        //     
-        // if(isRotating) return; 
-        //
-        // Quaternion prevRotation = tilemap.GetTransformMatrix(cellPos).rotation;
-        //
-        // tilemap.SetTile(cellPos, choosenBuilding.getTile());
-        // tilemap.SetTransformMatrix(cellPos, Matrix4x4.TRS(Vector3.zero, curBuilding.transform.parent.rotation, Vector3.one));
-        //
-        // Building prevBuild = _BpData.buildingsBP[cellPos];
-        //
-        // _BpData.DeleteTile(cellPos, prevBuild);
-        // _BpData.buildingsBP.Add(cellPos, choosenBuilding);
-        //
-        // Destroy(curBuilding);
-        //
-        // choosenBuilding = prevBuild;
-        //
-        // CreateSprite(prevRotation);
+        if (!Input.GetMouseButtonUp(0) || !curBuilding  || isCursorEmpty || choosenBuilding == null || 
+            !_BpData.ConatainsOverlap(PosUpdater(cellPos, choosenBuilding.getCellsPos()))) return;
+        
+        isCursorEmpty = true;
+            
+        if(isRotating) return;
+        
+        Building choosenBuilding1 = choosenBuilding;
+        
+        choosenBuilding = _BpData.GetBuilding(cellPos);
+        
+        CreateSprite(choosenBuilding.getRotation(), _BpData.GetCellsPos(choosenBuilding));
+        
+        _BpData.DeleteTiles(choosenBuilding);
+        
+        choosenBuilding1.setRotation(curBuilding.transform.parent.rotation);
+        
+        _BpData.buildingsBP.Add(PosUpdater(cellPos, choosenBuilding1.getCellsPos()), choosenBuilding1);
+        
+        _BpData.RenderTiles();
+        
+        ClearChildren();
+
         // //Ставит в рюкзачек
     }
 
@@ -215,6 +237,8 @@ public class TileMovement : MonoBehaviour
         if (!Input.GetMouseButtonDown(0)) return;
         
         if (!_BpData.ContainsCellPos(cellPos)) return;
+
+        isCursorEmpty = true;
 
         choosenBuilding = _BpData.GetBuilding(cellPos);
         
@@ -235,7 +259,9 @@ public class TileMovement : MonoBehaviour
         curBuilding.tag = "Tower";
 
         curBuilding.GetComponent<Build>().prefabBuilding = choosenBuilding;
-        
+
+        curBuilding.GetComponent<Build>().offset = cellPos - storagePos[0];
+
         foreach (var curPos in storagePos) {
             
             Vector3Int relativePosition = new Vector3Int(curPos.x - cellPos.x, curPos.y - cellPos.y, 0);
@@ -264,7 +290,7 @@ public class TileMovement : MonoBehaviour
         foreach (Vector3Int position in positions)
         {
             // Вычисляем разницу между текущей позицией и позицией из списка
-            Vector3Int difference = currentPosition + position;
+            Vector3Int difference = currentPosition + position - curBuilding.transform.parent.GetComponent<Build>().offset;
 
             // Добавляем измененную позицию в список
             updatedPositions.Add(difference);

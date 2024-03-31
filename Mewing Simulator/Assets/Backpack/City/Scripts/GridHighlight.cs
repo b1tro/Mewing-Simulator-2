@@ -17,41 +17,75 @@ public class GridHighlight : MonoBehaviour
     
     public Color highlightColor;
 
-    private Vector3Int previousCellPos;
+    private List<Vector3Int> previousCellPos = new List<Vector3Int>();
 
     private void Start()
     {
         //Time.timeScale = 0.0001f;
-        
-        previousCellPos = new Vector3Int(2, 2, -1);
+
     }
 
-    public void Highlight()
+    private void OnEnable()
     {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector3Int cellPos = tilemap.WorldToCell(mousePos);
+        _TileMovement.DropBuild += Highlight;
+    }
+    
+    private void OnDisable()
+    {
+        Debug.Log("VURUBIL");
+        _TileMovement.DropBuild -= Highlight;
+    }
 
-       //Debug.Log(tilemap.GetTile(cellPos));
-        
-        if (tilemap.GetTile(cellPos) != defaultTile && tilemap.GetTile(cellPos) != highlightedTile)
+    private void Highlight(List<Vector3Int> cellPos, bool isCursorEmpty, Vector3Int mousePos)
+    {
+        if (previousCellPos != null || isCursorEmpty)
         {
-            if (tilemap.GetTile(previousCellPos) == highlightedTile)
-                    tilemap.SetTile(previousCellPos, defaultTile);
-            return;
+            ClearGrid();
         }
         
-        if (tilemap.GetTile(previousCellPos) == highlightedTile)
+        //Debug.Log(tilemap.GetTile(cellPos));
+
+        if (!isCursorEmpty && (mousePos.x >= 1 && mousePos.x <= 8 && mousePos.y >= -4 && mousePos.y <= 3))
         {
-            tilemap.SetTile(previousCellPos, defaultTile);
+            foreach (Vector3Int Pos in cellPos)
+            {
+                // if (tilemap.GetTile(previousCellPos) == highlightedTile)
+                //     tilemap.SetTile(previousCellPos, null);
+                // return;
+
+
+                // if (tilemap.GetTile(previousCellPos) == highlightedTile)
+                // {
+                //     tilemap.SetTile(previousCellPos, null);
+                // }
+
+                if (!(Pos.x >= 1 && Pos.x <= 8 && Pos.y >= -4 && Pos.y <= 3))
+                {
+                    break;
+                }
+
+                tilemap.SetTile(Pos, highlightedTile);
+                    tilemap.SetTileFlags(Pos, TileFlags.None);
+                    tilemap.SetColor(Pos, highlightColor);
+                
+            }
         }
 
-       
-        tilemap.SetTile(cellPos, highlightedTile);
-        tilemap.SetTileFlags(cellPos, TileFlags.None);
-        tilemap.SetColor(cellPos, highlightColor);
-        
-
+        if (previousCellPos != null) previousCellPos.Clear();
         previousCellPos = cellPos;
+    }
+
+    public void ClearGrid()
+    {
+        for(int x = 1; x <= 8; x++)
+        {
+            for (int y = -4; y <= 3; y++)
+            {
+                if(tilemap.GetTile(new Vector3Int(x, y)) == highlightedTile)
+                    tilemap.SetTile(new Vector3Int(x, y), null);
+            }
+      
+        }
     }
 
     public Tile GetDefaultTile()

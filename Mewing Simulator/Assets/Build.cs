@@ -9,4 +9,5 @@ using Random = System.Random;
 public class Build : MonoBehaviour
 {
     public Building prefabBuilding;
+    public Vector3Int offset = Vector3Int.zero;
 }

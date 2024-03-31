@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -25,6 +26,11 @@ public class BPData : MonoBehaviour
             }
         }
         return false;
+    }
+
+    public bool ConatainsOverlap(List<Vector3Int> cellPos)
+    {
+        return cellPos.Any(Pos => ContainsCellPos(Pos));
     }
 
     public void RenderTiles()
@@ -86,7 +92,7 @@ public class BPData : MonoBehaviour
             {
                 foreach (var Pos in build.Key)
                 {
-                    tilemap.SetTile(Pos, _GridHighlight.GetDefaultTile());
+                    tilemap.SetTile(Pos, null);
                 }
                 buildingsBP.Remove(build.Key, out building);
                 
